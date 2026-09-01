@@ -1,0 +1,93 @@
+image:
+  repository: docker.io/apache/superset
+  tag: 6.1.0
+  pullPolicy: IfNotPresent
+
+postgresql:
+  enabled: true
+  auth:
+    database: superset
+    username: superset
+    password: __SUPERSET_PASSWORD__
+  primary:
+    persistence:
+      enabled: false
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 256Mi
+
+redis:
+  enabled: true
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: false
+    resources:
+      limits:
+        cpu: 250m
+        memory: 256Mi
+      requests:
+        cpu: 50m
+        memory: 128Mi
+  replica:
+    replicaCount: 0
+    persistence:
+      enabled: false
+
+supersetNode:
+  replicas:
+    enabled: true
+    replicaCount: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 512Mi
+  connections:
+    postgresql_host: superset-postgresql
+    postgresql_port: 5432
+    postgresql_database: superset
+    postgresql_user: superset
+    redis_host: superset-redis-master
+    redis_port: 6379
+
+supersetWorker:
+  replicas:
+    enabled: true
+    replicaCount: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+supersetCeleryBeat:
+  enabled: false
+
+runAsUser: 0
+
+ingress:
+  enabled: true
+  ingressClassName: public
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  path: /
+  pathType: Prefix
+  hosts:
+    - __SUPERSET_HOST__
+  tls:
+    - secretName: superset-tls
+      hosts:
+        - __SUPERSET_HOST__
+
+extraSecretEnv:
+  SUPERSET_SECRET_KEY: "__SUPERSET_SECRET_KEY__"
